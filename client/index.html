@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Extender IRC Client</title>
+    <script type="module" src="/src/main.ts" defer></script>
+    <script src="https://kit.fontawesome.com/323855ccfa.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <header class="app_header">
+        <span class="active_server_address">
+            Active Server Address Here
+        </span>
+    </header>
+    <section class="app_content">
+        <aside class="app_sidebar">
+            App sidebar
+        </aside>
+        <main class="app_body">
+            <section class="chat_box" id="chat_box">
+                <div class="chat_start">
+                    There is no older messages! This is the start of this chat!
+                </div>
+                <div class="chat_message">
+                    <div class="chat_message_upper">
+                        <span class="chat_message_author">Username</span>
+                        <span class="chat_message_timestamp">12:34</span>
+                    </div>
+                    <div class="chat_message_content">Hello, this is a message!</div>
+                </div>
+                <div class="chat_message">
+                    <div class="chat_message_upper">
+                        <span class="chat_message_author">Username</span>
+                        <span class="chat_message_timestamp">12:34</span>
+                    </div>
+                    <div class="chat_message_content">Hello, this is a message!</div>
+                </div>
+                <div class="chat_message">
+                    <div class="chat_message_upper">
+                        <span class="chat_message_author">Username</span>
+                        <span class="chat_message_timestamp">12:34</span>
+                    </div>
+                    <div class="chat_message_content">Hello, this is a message!</div>
+                </div>
+                <div class="chat_message">
+                    <div class="chat_message_upper">
+                        <span class="chat_message_author">Username</span>
+                        <span class="chat_message_timestamp">12:34</span>
+                    </div>
+                    <div class="chat_message_content">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus aliquid animi consequuntur esse excepturi facilis fugiat in libero minus mollitia nesciunt optio pariatur porro, possimus quam quas quasi quisquam ratione reiciendis sit suscipit tempore ullam veritatis voluptatum? Accusantium aliquid debitis, dignissimos eos esse incidunt, laborum pariatur perspiciatis qui reprehenderit sint totam. Deserunt est ex facere obcaecati quae ut vel! A blanditiis, cupiditate dolore eligendi enim est ipsam nemo odio praesentium qui recusandae veritatis, voluptatem. Architecto, beatae deleniti dicta dolore ducimus eaque eum fuga fugit id iure nostrum obcaecati odit quia quos recusandae repellendus, totam. Asperiores commodi eaque illo laudantium, nobis numquam pariatur, quae quia soluta tempore vitae voluptatem? Aliquam ipsam nam numquam vitae voluptatibus! Accusamus animi aperiam at delectus dicta dolores ducimus ex explicabo ipsa ipsam iusto laboriosam maxime, minima molestias neque nesciunt nobis non perspiciatis quas quos ratione repellendus reprehenderit saepe sed totam veniam vero! Ad aliquam blanditiis, eaque eos, laborum maiores porro quia quo sint sit tempora veniam vero. Adipisci beatae, debitis dolorum enim eum explicabo, impedit nihil repudiandae rerum tenetur velit, voluptatibus! Alias assumenda consectetur exercitationem, fugit minima nisi quidem sed sunt, vel veniam voluptatem, voluptates voluptatum? Deleniti dolor enim facere illo neque perferendis quisquam voluptatum.</div>
+                </div>
+                <div class="chat_message">
+                    <div class="chat_message_upper">
+                        <span class="chat_message_author">Username</span>
+                        <span class="chat_message_timestamp">12:34</span>
+                    </div>
+                    <div class="chat_message_content">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad assumenda consectetur consequuntur cum earum eos ex, excepturi laborum libero magni modi nemo odio officia officiis placeat quibusdam sequi voluptates. Eos inventore laudantium omnis veritatis! Dolorum hic obcaecati placeat quidem ratione repellendus suscipit. Alias aliquam aliquid blanditiis delectus earum, eius exercitationem harum illum incidunt ipsum iste laudantium libero magnam necessitatibus nesciunt non nostrum numquam officia porro quos rem, saepe sapiente, soluta tempora ut velit voluptatibus voluptatum? Et incidunt omnis tenetur? Asperiores, beatae cum eos est expedita facilis fuga illo illum ipsam iure labore laudantium non rem, sit tempore veniam vitae! Animi.</div>
+                </div>
+            </section>
+            <section class="message_box" id="message_box">
+                <button class="message_box_attachment"><i class="fa-solid fa-paperclip"></i></button>
+                <div contenteditable="true" class="message_box_input" id="message_box_input">
+                </div>
+<!--                <textarea placeholder="Enter your message here..." class="message_box_input" id="message_box_input"></textarea>-->
+                <button class="message_box_send"><i class="fa-solid fa-paper-plane"></i></button>
+            </section>
+        </main>
+    </section>
+  </body>
+  <script>
+    // Scroll to bottom of chat box on load
+    const chatBox = document.getElementById('chat_box');
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // On message_box_input content changed adjust height of message_box
+    const messageBoxInput = document.getElementById("message_box_input");
+    const messageBox = document.getElementById("message_box");
+    messageBoxInput.addEventListener("input", () => {
+        messageBox.style.height = (messageBoxInput.scrollHeight + 20) + "px";
+        console.log("Adjusted message box height to " + messageBox.style.height);
+    });
+  </script>
+</html>

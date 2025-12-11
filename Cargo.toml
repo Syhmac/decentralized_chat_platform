@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "server",
+    "client",
+    "client/src-tauri",
+    "test_client"
+]

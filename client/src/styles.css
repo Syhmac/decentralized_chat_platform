@@ -1,0 +1,209 @@
+body {
+  margin: 0;
+}
+:root {
+  --app_header_heigth: 24px;
+}
+
+.app_header {
+  height: var(--app_header_heigth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app_content {
+  display: grid;
+  grid-template-columns: 256px auto;
+}
+
+.app_body {
+  height: calc(100vh - var(--app_header_heigth));
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  border-radius: 16px 0 0 0;
+  padding: 8px;
+}
+
+.chat_box {
+  max-height: calc(100vh - var(--app_header_heigth) - 96px);
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  --scrollbar-color-thumb: #6f6f6f;
+  --scrollbar-color-track: transparent;
+  --scrollbar-width: thin;
+  --scrollbar-width-legacy: 8px;
+}
+
+@supports (scrollbar-width: auto) {
+  .chat_box {
+    scrollbar-color: var(--scrollbar-color-thumb) var(--scrollbar-color-track);
+    scrollbar-width: var(--scrollbar-width);
+  }
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .chat_box::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color-thumb);
+  }
+  .chat_box::-webkit-scrollbar-track {
+    background: var(--scrollbar-color-track);
+  }
+  .chat_box::-webkit-scrollbar {
+    max-width: var(--scrollbar-width-legacy);
+    max-height: var(--scrollbar-width-legacy);
+  }
+  .chat_box::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+  .chat_box::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .chat_box:hover::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color-thumb);
+  }
+  .chat_box:hover::-webkit-scrollbar-track {
+    background: var(--scrollbar-color-track);
+  }
+  .chat_box:hover {
+    --fix: ; /* This custom property invalidates styles on hover, thereby enforcing a style recomputation. This is needed to work around a bug in Safari. */
+  }
+}
+
+
+.chat_start {
+  text-align: center;
+  font-size: 14px;
+  color: #a0a0a0;
+  margin-bottom: 16px;
+}
+
+.chat_message {
+  margin-bottom: 8px;
+}
+
+.chat_message_author {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.chat_message_timestamp {
+  color: #a0a0a0;
+  font-size: 12px;
+}
+
+.message_box {
+  max-height: 300px;
+  display: grid;
+  grid-template-columns: 64px auto 64px;
+  box-sizing: content-box;
+  border-radius: 32px;
+  position: relative;
+}
+
+.message_box_attachment, .message_box_send {
+  width: 64px;
+  height: 64px;
+  border: none;
+  background-color: transparent;
+  border-radius: 32px;
+  box-sizing: content-box;
+  display: block;
+  padding: 0;
+  transition-duration: 0.25s;
+  cursor: pointer;
+  margin: auto;
+}
+
+.message_box_attachment:hover, .message_box_send:hover {
+  background-color: #3f3f3f;
+  transition-duration: 0.25s;
+}
+
+.message_box_attachment:active, .message_box_send:active {
+  background-color: #5f5f5f;
+  transition-duration: 0.1s;
+}
+
+.message_box_attachment .fa-solid, .message_box_send .fa-solid {
+  font-size: 24px;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.message_box_input {
+  width: 100%;
+  margin: auto;
+  height: fit-content;
+  max-height: 128px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  overflow: auto;
+  border: none;
+  background-color: transparent;
+  resize: none;
+  padding: 12px 0;
+}
+
+.message_box_input:focus {
+  outline: none;
+}
+
+#message_placeholder {
+  color: #a0a0a0;
+  font-size: 14px;
+}
+
+:root {
+  font-family: Arial, serif;
+}
+
+@media screen and (max-width: 768px) {
+  .app_sidebar {
+    width: 64px
+  }
+}
+
+:root {
+  color: #f6f6f6;
+  background-color: #2f2f2f;
+}
+
+.app_header, .app_sidebar {
+  background-color: #2f2f2f;
+  color: #f7f7f7;
+}
+
+.message_box {
+  background-color: #1f1f1f;
+  color: #e6e6e6;
+  border: 2px solid #4f4f4f;
+  box-shadow: #1f1f1f 2px 2px 8px;
+}
+
+.app_body {
+  background-color: #3f3f3f;
+  border-left: 1px solid #4f4f4f;
+  border-top: 1px solid #4f4f4f;
+  box-sizing: border-box;
+}
+
+a:hover {
+  color: #24c8db;
+}
+
+input, textarea,
+button {
+  color: #ffffff;
+  background-color: #0f0f0f98;
+}
+
+button:active {
+  background-color: #0f0f0f69;
+}
