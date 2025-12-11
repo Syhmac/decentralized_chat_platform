@@ -10,6 +10,13 @@ use axum::{
 use futures::{stream::StreamExt, SinkExt};
 use axum::extract::ws::Utf8Bytes;
 use tokio::sync::broadcast;
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Clone)]
+struct ChatMessage {
+    username: String,
+    content: String,
+}
 
 #[derive(Clone)]
 struct AppState {
@@ -42,7 +49,10 @@ async fn handle_socket(stream: WebSocket, state: AppState) {
 
     while let Some(Ok(msg)) = reciever.next().await {
         if let Message::Text(text) = msg {
-            let _ = state.tx.send(text.to_string());
+            if let Ok(chat_msg) = serde_json::from_str::<ChatMessage>(&text) {
+                let json = serde_json::to_string(&chat_msg).unwrap();
+                let _ = state.tx.send(json);
+            }
         }
     }
 }
