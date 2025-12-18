@@ -708,6 +708,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
 
 [[package]]
+name = "dcp_commons"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "time",
+]
+
+[[package]]
 name = "decentralized_chat_platform_app"
 version = "0.1.0"
 dependencies = [
@@ -727,8 +735,8 @@ name = "decentralized_chat_platform_server"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "dcp_commons",
  "futures",
- "serde",
  "serde_json",
  "tokio",
 ]
@@ -2196,6 +2204,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.111",
+]
+
+[[package]]
+name = "num_threads"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c7398b9c8b70908f6371f47ed36737907c87c52af34c268fed0bf0ceb92ead9"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -3989,9 +4006,10 @@ dependencies = [
 name = "test_client"
 version = "0.1.0"
 dependencies = [
+ "dcp_commons",
  "futures",
- "serde",
  "serde_json",
+ "time",
  "tokio",
  "tokio-tungstenite",
 ]
@@ -4044,7 +4062,9 @@ checksum = "91e7d9e3bb61134e77bde20dd4825b97c010155709965fedf0f49bb138e52a9d"
 dependencies = [
  "deranged",
  "itoa",
+ "libc",
  "num-conv",
+ "num_threads",
  "powerfmt",
  "serde",
  "time-core",

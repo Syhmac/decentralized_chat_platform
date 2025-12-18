@@ -7,5 +7,6 @@ edition = "2024"
 tokio = { version = "1", features = ["full"] }
 tokio-tungstenite = "0.28"
 futures = "0.3"
-serde = { version = "1", features = ["derive"]}
 serde_json = "1"
+dcp_commons = {path="../dcp_commons"}
+time = { version = "0.3", features = ["local-offset"] }

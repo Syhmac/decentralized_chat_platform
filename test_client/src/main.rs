@@ -2,15 +2,10 @@ use futures::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tokio::io::{self, AsyncBufReadExt};
 use tokio_tungstenite::tungstenite::Utf8Bytes;
-use serde::{Serialize, Deserialize};
 use std::io as std_io;
 use std::io::Write;
-
-#[derive(Serialize, Deserialize)]
-struct ChatMessage {
-    username: String,
-    content: String,
-}
+use dcp_commons::utils;
+use time::{OffsetDateTime, UtcOffset};
 
 #[tokio::main]
 async fn main() {
@@ -30,11 +25,12 @@ async fn main() {
     tokio::spawn(async move {
         while let Some(Ok(msg)) = read.next().await {
             if let tokio_tungstenite::tungstenite::Message::Text(text) = msg {
-                if let Ok(chat_msg) = serde_json::from_str::<ChatMessage>(&text) {
+                if let Ok(chat_msg) = serde_json::from_str::<utils::ChatMessage>(&text) {
                     print!("\x1b[2K\r");
-                    std::io::Write::flush(&mut std::io::stdout()).unwrap();
+                    Write::flush(&mut std::io::stdout()).unwrap();
 
-                    println!("{}: {}", chat_msg.username, chat_msg.content);
+                    let offset = UtcOffset::current_local_offset().unwrap();
+                    println!("[{}] {}:\n{}", utils::get_string_time(chat_msg.timestamp, offset), chat_msg.username, chat_msg.content);
 
                     print!("> ");
                     Write::flush(&mut std::io::stdout()).unwrap();
@@ -54,9 +50,11 @@ async fn main() {
             if line.is_empty() {
                 break;
             }
-            let msg = ChatMessage {
+            let timestamp = utils::get_timestamp(OffsetDateTime::now_utc());
+            let msg = utils::ChatMessage {
                 username: username.clone(),
                 content: line,
+                timestamp,
             };
             let json = serde_json::to_string(&msg).unwrap();
             write

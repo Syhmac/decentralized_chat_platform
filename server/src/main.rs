@@ -10,13 +10,7 @@ use axum::{
 use futures::{stream::StreamExt, SinkExt};
 use axum::extract::ws::Utf8Bytes;
 use tokio::sync::broadcast;
-use serde::{Serialize, Deserialize};
-
-#[derive(Serialize, Deserialize, Clone)]
-struct ChatMessage {
-    username: String,
-    content: String,
-}
+use dcp_commons::utils;
 
 #[derive(Clone)]
 struct AppState {
@@ -49,7 +43,7 @@ async fn handle_socket(stream: WebSocket, state: AppState) {
 
     while let Some(Ok(msg)) = reciever.next().await {
         if let Message::Text(text) = msg {
-            if let Ok(chat_msg) = serde_json::from_str::<ChatMessage>(&text) {
+            if let Ok(chat_msg) = serde_json::from_str::<utils::ChatMessage>(&text) {
                 let json = serde_json::to_string(&chat_msg).unwrap();
                 let _ = state.tx.send(json);
             }
@@ -59,7 +53,7 @@ async fn handle_socket(stream: WebSocket, state: AppState) {
 
 #[tokio::main]
 async fn main() {
-    let (tx, rx) = broadcast::channel(124);
+    let (tx, _rx) = broadcast::channel(124);
 
     let state = AppState { tx };
 

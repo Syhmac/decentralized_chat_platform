@@ -3,5 +3,5 @@ members = [
     "server",
     "client",
     "client/src-tauri",
-    "test_client"
-]
+    "test_client", 
+    "dcp_commons"]
