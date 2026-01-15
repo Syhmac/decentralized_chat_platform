@@ -3,10 +3,21 @@ pub mod utils {
     use time::{OffsetDateTime, UtcOffset, format_description};
 
     #[derive(Serialize, Deserialize, Clone)]
+    pub struct AuthRequired {
+        pub requires_auth: bool,
+    }
+    
+    #[derive(Serialize, Deserialize, Clone)]
     pub struct ChatMessage {
-        //pub message_id: i64,
-        //pub user_id: i64,
-        //pub channel_id: i64,
+        pub message_id: i64,
+        pub user_id: i64,
+        pub channel_id: i64,
+        pub content: String,
+        pub timestamp: i64,
+    }
+
+    #[derive(Serialize, Deserialize, Clone)]
+    pub struct ChatMessageUnAuth {
         pub content: String,
         pub timestamp: i64,
         pub username: String,

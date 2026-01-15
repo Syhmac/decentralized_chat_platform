@@ -9,4 +9,4 @@ tokio = {version = "1", features = ["full"]}
 futures = "0.3"
 serde_json = "1"
 dcp_commons = {path="../dcp_commons"}
-sqlite = "0.37"
+sqlite = "0.37.0"

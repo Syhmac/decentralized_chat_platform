@@ -26,7 +26,22 @@ async fn ws_handler(
     ws.on_upgrade(|socket| handle_socket(socket, state))
 }
 
-async fn handle_socket(stream: WebSocket, state: AppState) {
+async fn handle_socket(mut stream: WebSocket, state: AppState) {
+    println!("New WebSocket connection established");
+
+    // Init information exchange
+    let auth_required = utils::AuthRequired {
+        requires_auth: false,
+    };
+    stream.send(Message::Text(
+        Utf8Bytes::from(serde_json::to_string(&auth_required).unwrap()),
+    )).await.expect("Failed to send auth required message");
+
+    // Authenticating user
+    if auth_required.requires_auth {
+        // Authentication logic would go here (not implemented)
+    }
+
     let (mut sender, mut reciever) = stream.split();
 
     let mut rx = state.tx.subscribe();
@@ -45,12 +60,26 @@ async fn handle_socket(stream: WebSocket, state: AppState) {
 
     while let Some(Ok(msg)) = reciever.next().await {
         if let Message::Text(text) = msg {
-            if let Ok(chat_msg) = serde_json::from_str::<utils::ChatMessage>(&text) {
-                let json = serde_json::to_string(&chat_msg).unwrap();
-                let msg_obj: ChatMessage = serde_json::from_str(&json).expect("Failed to parse ChatMessage");
-
-                println!("{}", json);
-                let _ = state.tx.send(json);
+            // println!("Received message: {}", text);
+            if auth_required.requires_auth {
+                // println!("Authentication required, but not implemented");
+                // Handle authenticated messages (not implemented)
+                continue;
+            } else {
+                // println!("Authentication not required.");
+                if let Ok(chat_msg) = serde_json::from_str::<utils::ChatMessageUnAuth>(&text) {
+                    let json = serde_json::to_string(&chat_msg).unwrap();
+                    let msg_obj: utils::ChatMessageUnAuth = serde_json::from_str(&json).expect("Failed to parse ChatMessage");
+                    let db = sqlite::open("serverData.sqlite").expect("Failed to open database");
+                    let query = format!(
+                        "INSERT INTO messages_unauthenticated (username, channelID, content, messageTime) VALUES ('{}', {}, '{}', datetime({}, 'unixepoch'));",
+                        msg_obj.username, 0, msg_obj.content.replace("'", "''"), msg_obj.timestamp // Using channelID 0 as default - not implemented yet
+                    );
+                    println!("Query: {}", query);
+                    db.execute(query).expect("Failed to save unauthenticated message to database");
+                    // println!("{}", json);
+                    let _ = state.tx.send(json);
+                }
             }
         }
     }
@@ -68,6 +97,16 @@ fn prepare_database(db: &sqlite::Connection) {
         );
     ";
     db.execute(query).expect("Failed to create messages table!");
+    query = "\
+        CREATE TABLE IF NOT EXISTS messages_unauthenticated (\
+            unauthenticatedMessageID INTEGER PRIMARY KEY AUTOINCREMENT,\
+            username TEXT NOT NULL,\
+            channelID INTEGER NOT NULL,\
+            content TEXT NOT NULL,\
+            messageTime DATETIME DEFAULT CURRENT_TIMESTAMP\
+        );\
+    ";
+    db.execute(query).expect("Failed to create messages_unauthenticated table!");
     query = "
         CREATE TABLE IF NOT EXISTS users (
             userID INTEGER PRIMARY KEY AUTOINCREMENT,
