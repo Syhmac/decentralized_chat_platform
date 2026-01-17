@@ -75,7 +75,7 @@ async fn handle_socket(mut stream: WebSocket, state: AppState) {
                         "INSERT INTO messages_unauthenticated (username, channelID, content, messageTime) VALUES ('{}', {}, '{}', datetime({}, 'unixepoch'));",
                         msg_obj.username, 0, msg_obj.content.replace("'", "''"), msg_obj.timestamp // Using channelID 0 as default - not implemented yet
                     );
-                    println!("Query: {}", query);
+                    // println!("Query: {}", query);
                     db.execute(query).expect("Failed to save unauthenticated message to database");
                     // println!("{}", json);
                     let _ = state.tx.send(json);
