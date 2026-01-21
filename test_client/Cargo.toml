@@ -12,3 +12,4 @@ dcp_commons = {path="../dcp_commons"}
 time = { version = "0.3", features = ["local-offset"] }
 ratatui = "0.30"
 crossterm = "0.29.0"
+futures-util = "0.3.31"

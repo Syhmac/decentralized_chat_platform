@@ -1,6 +1,6 @@
 pub mod utils {
     use serde::{Serialize, Deserialize};
-    use time::{OffsetDateTime, UtcOffset, format_description};
+    use time::{OffsetDateTime, UtcOffset, UtcDateTime, format_description};
 
     #[derive(Serialize, Deserialize, Clone)]
     pub struct AuthRequired {
@@ -24,6 +24,14 @@ pub mod utils {
     }
 
     #[derive(Serialize, Deserialize, Clone)]
+    pub struct MessageRequest {
+        pub channel_id: i64,
+        pub authentication: bool,
+        pub older_than: i64,
+        pub count: u64,
+    }
+
+    #[derive(Serialize, Deserialize, Clone)]
     pub struct User {
         pub user_id: i64,
         pub display_name: String,
@@ -43,6 +51,22 @@ pub mod utils {
             utc_time.format(&format).unwrap()
         } else {
             "Invalid date".to_string()
+        }
+    }
+
+    pub fn convert_str_time_to_timestamp(time_str: &str, offset: UtcOffset) -> Option<i64> {
+        let format = format_description::parse(
+            "[year]-[month]-[day] [hour]:[minute]:[second]",
+        ).unwrap();
+        match UtcDateTime::parse(time_str, &format) {
+            Ok(dt) => {
+                let dt_utc = dt.to_offset(offset);
+                Some(dt_utc.unix_timestamp())
+            },
+            Err(e) => {
+                eprintln!("Error parsing time string: {}", e);
+                None
+            },
         }
     }
 }
