@@ -30,6 +30,7 @@ use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use dcp_commons::utils;
 
 use std::sync::atomic::{AtomicI64, Ordering};
+use crossterm::event::KeyEventKind;
 
 static OLDEST_MESSAGE_TIMESTAMP: AtomicI64 = AtomicI64::new(0);
 
@@ -287,23 +288,24 @@ fn run_ui(
         })?;
 
         // Poll for keyboard events
-        // FIX: Duplicate event handling in Windows
         if event::poll(Duration::from_millis(100))? {
-            if let CEvent::Key(KeyEvent {code, ..}) = event::read()? {
-                match code {
-                    KeyCode::Char(c) => {input.push(c);}
-                    KeyCode::Backspace => {input.pop();}
-                    KeyCode::Enter => {
-                        let to_send = input.trim().to_string();
-                        if !to_send.is_empty() {
-                            let _ = tx_out.send(to_send);
+            if let CEvent::Key(KeyEvent {code, kind, ..}) = event::read()? {
+                if kind == KeyEventKind::Press { // This check is needed for Windows
+                    match code {
+                        KeyCode::Char(c) => {input.push(c);}
+                        KeyCode::Backspace => {input.pop();}
+                        KeyCode::Enter => {
+                            let to_send = input.trim().to_string();
+                            if !to_send.is_empty() {
+                                let _ = tx_out.send(to_send);
+                            }
+                            input.clear();
                         }
-                        input.clear();
+                        KeyCode::Esc => {
+                            should_quit = true;
+                        }
+                        _ => {}
                     }
-                    KeyCode::Esc => {
-                        should_quit = true;
-                    }
-                    _ => {}
                 }
             }
         }
