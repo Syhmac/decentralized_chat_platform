@@ -8,29 +8,28 @@ use time::OffsetDateTime;
 use crossterm::{
     event::{self, Event as CEvent, KeyCode, KeyEvent},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 
 use futures::{SinkExt, StreamExt};
 
 use ratatui::{
+    Terminal,
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     style::{Modifier, Style},
     widgets::{Block, Borders, Paragraph},
-    Terminal,
 };
 
-use tokio::io::AsyncBufReadExt;
 use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::tungstenite::Utf8Bytes;
-use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 use dcp_commons::utils;
 
+use crossterm::event::{KeyEventKind, KeyModifiers};
 use std::sync::atomic::{AtomicI64, Ordering};
-use crossterm::event::KeyEventKind;
 
 static OLDEST_MESSAGE_TIMESTAMP: AtomicI64 = AtomicI64::new(0);
 
@@ -38,7 +37,12 @@ fn update_oldest_message_timestamp(ts: i64) {
     let mut current = OLDEST_MESSAGE_TIMESTAMP.load(Ordering::SeqCst);
     loop {
         if current == 0 || ts < current {
-            match OLDEST_MESSAGE_TIMESTAMP.compare_exchange(current, ts, Ordering::SeqCst, Ordering::SeqCst) {
+            match OLDEST_MESSAGE_TIMESTAMP.compare_exchange(
+                current,
+                ts,
+                Ordering::SeqCst,
+                Ordering::SeqCst,
+            ) {
                 Ok(_) => break,
                 Err(next) => current = next,
             }
@@ -65,7 +69,7 @@ async fn request_unauthenticated_messages(
     count: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Sends a MessageRequest to the server and processes the response.
-    
+
     // Build MessageRequest
     let req = utils::MessageRequest {
         channel_id,
@@ -73,7 +77,7 @@ async fn request_unauthenticated_messages(
         older_than: timestamp,
         count,
     };
-    
+
     // Build MessageRequest JSON using serde_json
     let req_json = serde_json::to_string(&req)?;
 
@@ -94,7 +98,8 @@ async fn request_unauthenticated_messages(
                         let j = serde_json::to_string(&message).unwrap();
                         let _ = tx_ui.send(j);
                     }
-                } else if let Ok(message) = serde_json::from_str::<utils::ChatMessageUnAuth>(&text) {
+                } else if let Ok(message) = serde_json::from_str::<utils::ChatMessageUnAuth>(&text)
+                {
                     update_oldest_message_timestamp(message.timestamp);
                     let j = serde_json::to_string(&message).unwrap();
                     let _ = tx_ui.send(j);
@@ -125,7 +130,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ws_stream_opt = Some(stream);
             }
             Err(e) => {
-                eprintln!("Failed to connect to {}: {}. Retrying in 5 seconds...", url, e);
+                eprintln!(
+                    "Failed to connect to {}: {}. Retrying in 5 seconds...",
+                    url, e
+                );
                 tokio::time::sleep(Duration::from_secs(5)).await;
             }
         }
@@ -139,18 +147,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let msg = read.next().await.unwrap()?;
     let auth_required: utils::AuthRequired = serde_json::from_str(msg.to_text()?)?;
 
-    let username: String;
-    if auth_required.requires_auth {
+    let username: String = if auth_required.requires_auth {
         println!("Authentication is required, but not implemented in this client.");
         return Ok(());
-    } else { // No authentication - ask user for username
+    } else {
+        // No authentication - ask user for username
         println!("This server does not support authentication.");
         print!("Enter your username: ");
         Write::flush(&mut std_io::stdout())?;
         let mut username_mut = String::new();
         std_io::stdin().read_line(&mut username_mut)?;
-        username = username_mut.trim().to_string();
-    }
+        username_mut.trim().to_string()
+    };
 
     // Channels for communication between UI and WebSocket tasks
     let (tx_ui_in, rx_ui_in): (Sender<String>, Receiver<String>) = mpsc::channel();
@@ -165,8 +173,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         0,
         auth_required.requires_auth,
         get_oldest_message_timestamp(),
-        5
-    ).await?;
+        5,
+    )
+    .await?;
 
     // Handle incoming messages from WebSocket
     let tx_ui_in_clone = tx_ui_in.clone();
@@ -222,13 +231,26 @@ fn run_ui(
     let mut input = String::new();
     let mut should_quit = false;
 
+    messages.push(String::from(
+        "[CLIENT]:\n\
+            You have successfully joined the chat!\n\
+            Ctrl+[arrows] - scroll Messages window\n\
+            Ctrl+End - Get back to the bottom of the Messages window\n\
+            Only you can see this message.",
+    ));
+
+    let mut scroll_vert: usize = 0;
+    let mut scroll_hor: u16 = 0;
     while !should_quit {
         // Drain incoming messages
         while let Ok(msg) = rx_ui_in.try_recv() {
             if let Ok(chat) = serde_json::from_str::<utils::ChatMessageUnAuth>(&msg) {
                 messages.push(format!(
                     "[{}] {}:\n{}",
-                    utils::get_string_time(chat.timestamp, time::UtcOffset::current_local_offset().unwrap_or(time::UtcOffset::UTC)),
+                    utils::get_string_time(
+                        chat.timestamp,
+                        time::UtcOffset::current_local_offset().unwrap_or(time::UtcOffset::UTC)
+                    ),
                     chat.username,
                     chat.content
                 ));
@@ -247,14 +269,8 @@ fn run_ui(
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(1)
-                .constraints(
-                    [
-                        Constraint::Min(1),
-                        Constraint::Length(3),
-                    ]
-                    .as_ref(),
-                )
-                .split(f.size());
+                .constraints([Constraint::Min(1), Constraint::Length(3)].as_ref())
+                .split(f.area());
 
             // Join messages in chronological order
             let joined = messages.join("\n\n");
@@ -262,15 +278,23 @@ fn run_ui(
             let view_height = chunks[0].height as usize;
 
             // Scroll to bottom if necessary
-            let last_message_lines: usize;
-            if messages.is_empty() {
-                last_message_lines = 0;
+            let last_message_lines: usize = if messages.is_empty() {
+                0
             } else {
-                last_message_lines = messages.last().unwrap().lines().count();
-            }
+                messages.last().unwrap().lines().count()
+            };
             let total_height = total_lines + last_message_lines;
             let scroll = if total_height > view_height {
-                (total_lines - view_height + messages[messages.len()-1].lines().count()) as u16
+                if scroll_vert
+                    < (total_lines - view_height + messages[messages.len() - 1].lines().count())
+                {
+                    (total_lines - view_height + messages[messages.len() - 1].lines().count()
+                        - scroll_vert) as u16
+                } else {
+                    scroll_vert =
+                        total_lines - view_height + messages[messages.len() - 1].lines().count();
+                    0
+                }
             } else {
                 0
             };
@@ -278,34 +302,69 @@ fn run_ui(
             let messages_paragraph = Paragraph::new(joined)
                 .block(Block::default().borders(Borders::ALL).title("Messages"))
                 .style(Style::default())
-                .scroll((scroll, 0));
+                .scroll((scroll, scroll_hor));
             f.render_widget(messages_paragraph, chunks[0]);
 
             let input_paragraph = Paragraph::new(input.as_str())
-                .block(Block::default().borders(Borders::ALL).title("Input (Enter to send, Esc to quit"))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Input (Enter to send, Esc to quit)"),
+                )
                 .style(Style::default().add_modifier(Modifier::ITALIC));
             f.render_widget(input_paragraph, chunks[1]);
         })?;
 
         // Poll for keyboard events
-        if event::poll(Duration::from_millis(100))? {
-            if let CEvent::Key(KeyEvent {code, kind, ..}) = event::read()? {
-                if kind == KeyEventKind::Press { // This check is needed for Windows
-                    match code {
-                        KeyCode::Char(c) => {input.push(c);}
-                        KeyCode::Backspace => {input.pop();}
-                        KeyCode::Enter => {
-                            let to_send = input.trim().to_string();
-                            if !to_send.is_empty() {
-                                let _ = tx_out.send(to_send);
-                            }
-                            input.clear();
-                        }
-                        KeyCode::Esc => {
-                            should_quit = true;
-                        }
-                        _ => {}
+        if event::poll(Duration::from_millis(100))?
+            && let CEvent::Key(KeyEvent {
+                code,
+                kind,
+                modifiers,
+                ..
+            }) = event::read()?
+            && kind == KeyEventKind::Press
+        {
+            // This check is needed for Windows
+            if modifiers == KeyModifiers::CONTROL {
+                match code {
+                    KeyCode::Up => {
+                        scroll_vert += 1;
                     }
+                    KeyCode::Down => {
+                        scroll_vert = scroll_vert.saturating_sub(1);
+                    }
+                    KeyCode::Right => {
+                        scroll_hor += 1;
+                    }
+                    KeyCode::Left => {
+                        scroll_hor = scroll_hor.saturating_sub(1);
+                    }
+                    KeyCode::End => {
+                        scroll_vert = 0;
+                        scroll_hor = 0;
+                    }
+                    _ => {}
+                }
+            } else {
+                match code {
+                    KeyCode::Char(c) => {
+                        input.push(c);
+                    }
+                    KeyCode::Backspace => {
+                        input.pop();
+                    }
+                    KeyCode::Enter => {
+                        let to_send = input.trim().to_string();
+                        if !to_send.is_empty() {
+                            let _ = tx_out.send(to_send);
+                        }
+                        input.clear();
+                    }
+                    KeyCode::Esc => {
+                        should_quit = true;
+                    }
+                    _ => {}
                 }
             }
         }

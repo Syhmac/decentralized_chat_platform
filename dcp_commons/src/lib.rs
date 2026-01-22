@@ -1,12 +1,12 @@
 pub mod utils {
-    use serde::{Serialize, Deserialize};
-    use time::{OffsetDateTime, UtcOffset, UtcDateTime, format_description};
+    use serde::{Deserialize, Serialize};
+    use time::{OffsetDateTime, UtcDateTime, UtcOffset, format_description};
 
     #[derive(Serialize, Deserialize, Clone)]
     pub struct AuthRequired {
         pub requires_auth: bool,
     }
-    
+
     #[derive(Serialize, Deserialize, Clone)]
     pub struct ChatMessage {
         pub message_id: i64,
@@ -45,9 +45,7 @@ pub mod utils {
         let utc_time = OffsetDateTime::from_unix_timestamp(timestamp);
         if let Ok(mut utc_time) = utc_time {
             utc_time = utc_time.to_offset(offset);
-            let format = format_description::parse(
-              "[year]-[month]-[day] [hour]:[minute]",
-            ).unwrap();
+            let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]").unwrap();
             utc_time.format(&format).unwrap()
         } else {
             "Invalid date".to_string()
@@ -55,18 +53,17 @@ pub mod utils {
     }
 
     pub fn convert_str_time_to_timestamp(time_str: &str, offset: UtcOffset) -> Option<i64> {
-        let format = format_description::parse(
-            "[year]-[month]-[day] [hour]:[minute]:[second]",
-        ).unwrap();
+        let format =
+            format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]").unwrap();
         match UtcDateTime::parse(time_str, &format) {
             Ok(dt) => {
                 let dt_utc = dt.to_offset(offset);
                 Some(dt_utc.unix_timestamp())
-            },
+            }
             Err(e) => {
                 eprintln!("Error parsing time string: {}", e);
                 None
-            },
+            }
         }
     }
 }

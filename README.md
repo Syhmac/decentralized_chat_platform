@@ -15,8 +15,8 @@ nor privacy at this point.
 ## Planned features
 - [ ] Message encryption through SSL.
 - [ ] User authentication and management.
-- [ ] Persistent message storage.
-- [ ] Graphical user interface for the client.
+- [x] Persistent message storage. (Most of it is done)
+- [x] Graphical user interface for the client. (Done in ratatui for the time being)
 - [ ] Support for multiple chat channels within a server.
 - [ ] File sharing capabilities.
 
@@ -28,9 +28,13 @@ nor privacy at this point.
 - [ ] Permission controlled channels and user roles.
 
 ## Installation
-To run the server and client you will need to compile the source code first using Cargo. Make sure that you have Rust
-installed on your machine. There will be pre-compiled executable releases in the future when the project is more advanced
-and ready to be used by the public.
+To run the server and client you will need to compile the source code first using Cargo.
+```shell
+cargo build --bin decentralized_chat_platform_server
+cargo build --bin test_client
+```
+Make sure that you have Rust installed on your machine. There will be pre-compiled executable releases in the future
+when the project is more advanced and ready to be used by the public.
 
 ## FaQ
 ### How to create a server?
